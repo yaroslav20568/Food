@@ -252,7 +252,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 'Content-type': 'application/json'
             },
             body: data
-        })
+        });
         return await res.json();
     }
 
