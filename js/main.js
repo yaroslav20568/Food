@@ -326,7 +326,7 @@ window.addEventListener('DOMContentLoaded', () => {
         slideOffset = 0,
         slideIndex = 0;
 
-    currentSlide.textContent = getZero(slideIndex + 1)
+    currentSlide.textContent = getZero(slideIndex + 1);
     totalSlide.textContent = getZero(slides.length);
     slideWrapper.style.overflow = 'hidden';
     slideTrack.style.cssText = `display: flex; width: ${slides[0].clientWidth * slides.length}px; transition: transform .4s linear`;
@@ -396,15 +396,112 @@ window.addEventListener('DOMContentLoaded', () => {
             btns.forEach(btn => btn.classList.remove('offer__slider-btn_active'));
             e.target.classList.add('offer__slider-btn_active');
             slideOffset = slides[0].clientWidth * i;
+            slideIndex = i;
             currentSlide.textContent = getZero(i + 1);
 
             slideTrack.style.transform = `translateX(${-slideOffset}px)`;
         });
     });
 
-    /**** reloading the page ****/
+    /**** RELOADING THE PAGE ****/
 
     window.addEventListener('unload', () => {
         document.documentElement.scrollTop = 0;
     });
 });
+
+/**** CALCULATOR ****/
+
+let calcGenderParent = document.querySelector('#gender'),
+    calcGenderItems = document.querySelectorAll('#gender .calculating__choose-item'),
+    calcActivityParent = document.querySelector('#activity'),
+    calcActivityItems = document.querySelectorAll('#activity .calculating__choose-item'),
+    calcInputs = document.querySelectorAll('.calculating__choose input'),
+    result = document.querySelector('.calculating__result span'),
+    height,
+    weight,
+    age,
+    sex = localStorage.getItem('sex') || 'famale',
+    coeffActivity = localStorage.getItem('coeffActivity') || '1.2';
+
+
+function showActiveItem(localStorageValue, items) {
+    items.forEach(item => item.classList.remove('calculating__choose-item_active'));
+    
+    items.forEach(item => {
+        if(item.id === localStorageValue) {
+            item.classList.add('calculating__choose-item_active');
+        }
+        if(item.dataset.activity === localStorageValue) {
+            item.classList.add('calculating__choose-item_active');
+        }
+    });
+}
+
+showActiveItem(sex, calcGenderItems);
+showActiveItem(coeffActivity, calcActivityItems);
+
+function getStaticInfo(parent, items) {
+    parent.addEventListener('click', (e) => {
+        if(e.target.classList.contains('calculating__choose-item')) {
+            if(e.target.dataset.activity) {
+                coeffActivity = +e.target.dataset.activity;
+                localStorage.setItem('coeffActivity', coeffActivity);
+            } else {
+                sex = e.target.id;
+                localStorage.setItem('sex', sex);
+            }
+
+            items.forEach(item => item.classList.remove('calculating__choose-item_active'));
+            e.target.classList.add('calculating__choose-item_active');
+        }
+
+        calcTotal();
+    });
+}
+
+getStaticInfo(calcGenderParent, calcGenderItems);
+getStaticInfo(calcActivityParent, calcActivityItems);
+
+function getDynamicInfo(inputs) {
+    inputs.forEach(input => {
+        input.addEventListener('input', () => {
+            if(input.value.match(/\D/g)) {
+                input.style.border = '1px solid #ff0000';
+            } else {
+                input.style.border = 'none';
+            }
+
+            switch (input.id) {
+                case 'height':
+                    height = +input.value;
+                    break;
+                case 'weight':
+                    weight = +input.value;
+                    break;
+                case 'age':
+                    age = +input.value;
+                    break;
+            }
+
+            calcTotal();
+        });
+    });
+}
+
+getDynamicInfo(calcInputs);
+
+function calcTotal() {
+    if(!sex || !height || !weight || !age || !coeffActivity) {
+        result.textContent = 0;
+        return;
+    }
+
+    if(sex == 'famale') {
+        result.textContent = Math.round((447.593 + (3.098 * height) + (9.247 * weight) - (4.330 * age)) * coeffActivity);
+    } else {
+        result.textContent = Math.round((88.362 + (4.799 * height) + (13.397 * weight) - (5.677 * age)) * coeffActivity);
+    }
+}
+
+calcTotal();
